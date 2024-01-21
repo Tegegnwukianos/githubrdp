@@ -1,4 +1,4 @@
-name: CI rdp
+name: CI
 
 on:
   push:
@@ -13,10 +13,10 @@ jobs:
 
     steps:
     - name: Download Chrome Remote Desktop Host Installer
-      run: Invoke-WebRequest -Uri "https://dl.google.com/tag/chrome-remote-desktop/chrome_remote_desktop_installer.exe" -OutFile "chrome_remote_desktop_installer.exe"
+      run: Invoke-WebRequest -Uri "https://dl.google.com/edgedl/chrome-remote-desktop/chromeremotedesktophost.msi" -OutFile "chromeremotedesktophost.msi"
 
     - name: Install Chrome Remote Desktop Host
-      run: Start-Process -Wait -FilePath "chrome_remote_desktop_installer.exe" -ArgumentList "/install"
+      run: Start-Process -Wait -FilePath "msiexec" -ArgumentList "/i", "chromeremotedesktophost.msi", "/quiet", "/norestart"
 
     - name: Enable TS
       run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
@@ -32,11 +32,7 @@ jobs:
 
     - name: Authorize SSH Access
       run: |
-        $command = "%PROGRAMFILES(X86)%\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe"
-        $command += " --code='4/0AfJohXmXWdyr5FuNOJvEfPdkDHCoVDl1wMOWECiBYxfeIlZRVdEFxmeKar8IaQs24fLWiQ'"
-        $command += " --redirect-url='https://remotedesktop.google.com/_/oauthredirect'"
-        $command += " --name=$env:COMPUTERNAME"
-        Invoke-Expression $command
+        "%PROGRAMFILES(X86)%\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe" --code='4/0AfJohXmXWdyr5FuNOJvEfPdkDHCoVDl1wMOWECiBYxfeIlZRVdEFxmeKar8IaQs24fLWiQ' --redirect-url='https://remotedesktop.google.com/_/oauthredirect' --name=$env:COMPUTERNAME
 
     - name: Check Chrome Remote Desktop Service Status
       run: Get-Service -Name "chromoting"
