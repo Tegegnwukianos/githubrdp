@@ -1,4 +1,4 @@
-name: teg rdp
+name: CI rdp
 
 on:
   push:
@@ -31,7 +31,12 @@ jobs:
       run: Start-Service -Name "chromoting"
 
     - name: Authorize SSH Access
-      run: "%PROGRAMFILES(X86)%\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe" --code="4/0AfJohXmXWdyr5FuNOJvEfPdkDHCoVDl1wMOWECiBYxfeIlZRVdEFxmeKar8IaQs24fLWiQ" --redirect-url="https://remotedesktop.google.com/_/oauthredirect" --name=$env:COMPUTERNAME
+      run: |
+        $command = "%PROGRAMFILES(X86)%\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe"
+        $command += " --code='4/0AfJohXmXWdyr5FuNOJvEfPdkDHCoVDl1wMOWECiBYxfeIlZRVdEFxmeKar8IaQs24fLWiQ'"
+        $command += " --redirect-url='https://remotedesktop.google.com/_/oauthredirect'"
+        $command += " --name=$env:COMPUTERNAME"
+        Invoke-Expression $command
 
     - name: Check Chrome Remote Desktop Service Status
       run: Get-Service -Name "chromoting"
