@@ -1,50 +1,15 @@
-name: CI
+# Use a base image that supports systemd, for example, Ubuntu
+FROM ubuntu:20.04
 
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+# Install necessary packages
+RUN apt-get update && \
+apt-get install -y shellinabox && \
+apt-get install -y systemd && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN echo 'root:root' | chpasswd
+# Expose the web-based terminal port
+EXPOSE 4200
 
-jobs:
-  build:
-
-    runs-on: windows-latest
-
-    steps:
-    - name: Download Chrome Remote Desktop Host Installer
-      run: Invoke-WebRequest -Uri "https://dl.google.com/edgedl/chrome-remote-desktop/chromeremotedesktophost.msi" -OutFile "chromeremotedesktophost.msi"
-
-    - name: Install Chrome Remote Desktop Host
-      run: Start-Process -Wait -FilePath "msiexec" -ArgumentList "/i", "chromeremotedesktophost.msi", "/quiet", "/norestart"
-
-    - name: Enable TS
-      run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
-
-    - name: Enable Remote Desktop
-      run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
-
-    - name: Set Local User Password
-      run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
-
-    - name: Start Chrome Remote Desktop Service
-      run: Start-Service -Name "chromoting"
-
-    - name: Authorize SSH Access
-      run: |
-        "%PROGRAMFILES(X86)%\Google\Chrome Remote Desktop\CurrentVersion\remoting_start_host.exe" --code='4/0AfJohXmXWdyr5FuNOJvEfPdkDHCoVDl1wMOWECiBYxfeIlZRVdEFxmeKar8IaQs24fLWiQ' --redirect-url='https://remotedesktop.google.com/_/oauthredirect' --name=$env:COMPUTERNAME
-
-    - name: Check Chrome Remote Desktop Service Status
-      run: Get-Service -Name "chromoting"
-
-    - name: Sleep for 30 seconds (adjust as needed)
-      run: Start-Sleep -Seconds 30
-
-    - name: Check Chrome Remote Desktop Service Status Again
-      run: Get-Service -Name "chromoting"
-
-    - name: Display Chrome Remote Desktop Configuration
-      run: Get-Content -Path "${env:ProgramData}\chromoting\hostconfig.txt"
-
-    - name: Display External IP Address (optional)
-      run: Invoke-RestMethod -Uri "https://api64.ipify.org?format=json" | Select-Object -ExpandProperty ip
+# Start shellinabox
+CMD ["/usr/bin/shellinaboxd", "-t", "-s", "/:LOGIN"]
