@@ -1,15 +1,24 @@
-# Use a base image that supports systemd, for example, Ubuntu
-FROM ubuntu:20.04
+name: CI rdp
 
-# Install necessary packages
-RUN apt-get update && \
-apt-get install -y shellinabox && \
-apt-get install -y systemd && \
-apt-get clean && \
-rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-RUN echo 'root:root' | chpasswd
-# Expose the web-based terminal port
-EXPOSE 4200
+on: [push, workflow_dispatch]
 
-# Start shellinabox
-CMD ["/usr/bin/shellinaboxd", "-t", "-s", "/:LOGIN"]
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Install Node.js
+      run: |
+        choco install nodejs-lts -y
+    - name: Install localtunnel
+      run: npm install -g localtunnel
+    - name: Enable TS
+      run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
+    - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+    - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
+    - run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
+    - name: Expose RDP using localtunnel
+      run: lt --port 3389
+      env:
+        LT_SUBDOMAIN: "your-custom-subdomain"
