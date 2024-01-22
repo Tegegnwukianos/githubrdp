@@ -1,25 +1,17 @@
-name: CI
+# Use the official Ubuntu 20.04 image
+FROM ubuntu:20.04
 
-on: [push, workflow_dispatch]
+# Update packages and install shellinabox and systemd
+RUN apt-get update && \
+    apt-get install -y shellinabox systemd && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-jobs:
-  build:
-    runs-on: windows-latest
-    steps:
-    - name: Enable RDP
-      run: |
-        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
-        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
-        Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
-    - name: Install Node.js and LocalTunnel
-      run: |
-        choco install nodejs
-        npm install -g localtunnel
-    - name: Create Tunnel
-      run: |
-        lt --port 3389 > localtunnel_url.txt &
-        Start-Sleep -s 10  # Wait for the tunnel to be established
-    - name: Display Tunnel URL
-      run: |
-        cat localtunnel_url.txt
+# Set root password
+RUN echo 'root:root' | chpasswd
+
+# Expose the web-based terminal port
+EXPOSE 4200
+
+# Start shellinabox
+CMD ["/usr/bin/shellinaboxd", "-t", "-s", "/:LOGIN"]
