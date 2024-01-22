@@ -1,4 +1,4 @@
-name: CI local tunnel
+name: CI
 
 on: [push, workflow_dispatch]
 
@@ -7,7 +7,7 @@ jobs:
     runs-on: windows-latest
     steps:
     - name: Download
-      run: Invoke-WebRequest https://github.com/localtunnel/localtunnel/archive/2.0.0.zip -OutFile localtunnel.zip
+      run: Invoke-WebRequest https://github.com/localtunnel/localtunnel/archive/refs/tags/2.0.0.zip -OutFile localtunnel.zip
     - name: Extract
       run: Expand-Archive localtunnel.zip
     - name: Install Node.js
