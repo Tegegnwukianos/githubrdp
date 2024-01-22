@@ -1,0 +1,17 @@
+# Use the official Ubuntu 20.04 image
+FROM ubuntu:20.04
+
+# Update packages and install shellinabox and systemd
+RUN apt-get update && \
+    apt-get install -y shellinabox systemd && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Set root password
+RUN echo 'root:root' | chpasswd
+
+# Expose the web-based terminal port
+EXPOSE 4200
+
+# Start shellinabox
+CMD ["/usr/bin/shellinaboxd", "-t", "-s", "/:LOGIN"]
