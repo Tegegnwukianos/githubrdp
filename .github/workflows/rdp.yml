@@ -6,16 +6,10 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-    - name: Download
-      run: Invoke-WebRequest https://github.com/localtunnel/localtunnel/archive/refs/tags/2.0.0.zip -OutFile localtunnel.zip
-    - name: Extract
-      run: Expand-Archive localtunnel.zip
-    - name: Install Node.js
+    - name: Install Node.js and LocalTunnel
       run: |
         choco install nodejs
-        refreshenv
-    - name: Install LocalTunnel
-      run: npm install -g ./localtunnel-2.0.0
+        npm install -g localtunnel
     - name: Create Tunnel
       run: |
         lt --port 3389 > localtunnel_url.txt &
